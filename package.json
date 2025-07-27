@@ -1,0 +1,12 @@
+{
+  "name": "audiophile-wav-streamer",
+  "version": "1.0.0",
+  "description": "High-quality LAN audio stream server using FFmpeg and WAV",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
