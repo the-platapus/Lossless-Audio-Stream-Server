@@ -1,39 +1,71 @@
-# iPod Touch Revival Project
+# 🎧 Minimal AAC Audio Streaming Server
 
-My biggest project yet. This repo is devoted to my lovely little iPod Touch 4th gen, aimed to do justice to old iconic media players.
-Many plans to make this device a media/infotainment beast in the future.
+This is a low-latency audio streaming server that captures system audio (e.g., Stereo Mix or Microphone) and streams it live in AAC format — perfect for old iOS devices like the iPod Touch 4th Gen.
 
-Currently this project only streams uncompressed 16-bit 44.1kHz stereo audio (WAV format) from your Windows PC over LAN.
+## ✅ Features
 
-## Features
+- Streams live audio via FFmpeg over HTTP
+- Optimized for compatibility with iOS 6 Safari
+- Minimal HTML UI for selecting audio input and adjusting FFmpeg settings
+- Supports persistent configuration via `config.json`
+- Cross-platform (Windows/macOS/Linux)
 
-- Uses FFmpeg and Node.js
-- HTML5 `<audio>` player on the frontend
-- Uncompressed WAV (1.4 Mbps) — audiophile-grade quality
+## 🛠 Requirements
 
-## Prerequisites
+- Node.js (v14 or later recommended)
+- FFmpeg installed and accessible in system PATH
+- For Windows: `Stereo Mix` or microphone input available via DirectShow (`dshow`)
+- For Linux/macOS: Use `avfoundation` (macOS) or `alsa` (Linux)
 
-- Windows PC with `Stereo Mix` or other system audio capture enabled
-- [FFmpeg](https://ffmpeg.org/download.html) installed and in system PATH
-- [Node.js](https://nodejs.org/) installed
-
-## Setup
-
-1. Clone this repo or copy the files
-2. Run:
+## 🚀 Getting Started
+### 1. Clone the Repo
 
 ```bash
-npm install
-npm start
+git clone https://github.com/yourusername/audio-stream-server.git
+cd audio-stream-server
+```
+2. Install Dependencies
+```bash
+yarn install
+```
+3. Run the Server
+```bash
+yarn start
+```
+Server will start on port 6160 by default and print your local IP:
 
-Keep vibing.
+✅ Server running at: http://192.168.x.x:6160
+4. Access from Client
+Open Safari (or any browser) on your iPod or other device:
 
-## FFmpeg Tweaks for Audiophiles
+cpp
+ 
+ ```bash
+http://<your-pc-ip>:6160
+```
+Click Set Input and then open:
+ ```bash
+http://<your-pc-ip>:6160/stream
+```
+⚙️ Configuration
+## Audio Input Device
+To change the input device:
+1. Visit http://<your-pc-ip>:6160
+2. Select an audio input from the dropdown
+3. Press Set
 
-| Quality | FFmpeg Change    |
-| ------- | ---------------- |
-| 16-bit  | `-c:a pcm_s16le` |
-| 24-bit  | `-c:a pcm_s24le` |
-| 32-bit  | `-c:a pcm_s32le` |
-| 48kHz   | `-ar 48000`      |
+## FFmpeg Settings
+Visit /settings.html and adjust encoding settings:
 
+Codec
+
+Bitrate
+
+Cutoff frequency
+
+Output format (adts recommended for iOS)
+
+These settings are saved to config.json.
+
+🙏 Credits:
+Developed with ❤️ for old and iconic Media Players of the golden age. Made with FFmpeg and Node.js.
