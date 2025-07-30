@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Live Stream Audio</title>
+    <title>Audio Stream</title>
 </head>
+
 <body>
-    <h1>Live Uncompressed Audio Stream</h1>
-    <audio controls autoplay src="/stream" type="audio/wav"></audio>
-    <p>If it doesn't auto-play, click play manually.</p>
+    <h1>🎧 Lossless FFMPEG Stream</h1>
+    <p>Tap play if it doesn't start automatically.</p>
+    <audio controls autoplay>
+        <source src="/stream" type="audio/mpeg">
+        Your browser does not support audio.
+    </audio>
+    <a href="/settings.html">Audio Settings</a>
 </body>
+
 </html>

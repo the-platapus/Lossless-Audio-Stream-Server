@@ -1,0 +1,33 @@
+{
+  "selectedDevice": "Line In (High Definition Audio Device)",
+  "ffmpegArgs": [
+    "-f",
+    "dshow",
+    "-i",
+    "audio=Stereo Mix (Realtek(R) Audio)",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "320k",
+    "-cutoff",
+    "19000",
+    "-f",
+    "adts",
+    "pipe:1"
+  ],
+  "ffmpeg": [
+    "-f",
+    "dshow",
+    "-i",
+    "audio=Line In (High Definition Audio Device)",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "320k",
+    "-cutoff",
+    "19000",
+    "-f",
+    "adts",
+    "pipe:1"
+  ]
+}

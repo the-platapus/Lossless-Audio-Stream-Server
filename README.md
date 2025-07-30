@@ -32,6 +32,7 @@ Keep vibing.
 
 | Quality | FFmpeg Change    |
 | ------- | ---------------- |
+| 16-bit  | `-c:a pcm_s16le` |
 | 24-bit  | `-c:a pcm_s24le` |
 | 32-bit  | `-c:a pcm_s32le` |
 | 48kHz   | `-ar 48000`      |

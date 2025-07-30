@@ -1,5 +1,5 @@
 {
-  "name": "audiophile-wav-streamer",
+  "name": "ipod-touch-revive",
   "version": "1.0.0",
   "description": "High-quality LAN audio stream server using FFmpeg and WAV",
   "main": "server.js",
