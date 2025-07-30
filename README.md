@@ -17,16 +17,16 @@
 
 1. Clone the Repo
 ```bash
-git clone https://github.com/yourusername/audio-stream-server.git
+git clone https://github.com/the-platapus/audio-stream-server.git
 cd audio-stream-server
 ```
 2. Install Dependencies
 ```bash
-yarn install
+npm install
 ```
 3. Run the Server
 ```bash
-yarn start
+npm start
 ```
 
 <br><br>
