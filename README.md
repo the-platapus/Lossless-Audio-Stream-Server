@@ -1,25 +1,21 @@
-# 🎧 Minimal AAC Audio Streaming Server
+# FFmpeg Lossless Audio Streaming Server
 
-This is a low-latency audio streaming server that captures system audio (e.g., Stereo Mix or Microphone) and streams it live in AAC format — perfect for old iOS devices like the iPod Touch 4th Gen.
 
-## ✅ Features
+## Features
 
-- Streams live audio via FFmpeg over HTTP
-- Optimized for compatibility with iOS 6 Safari
-- Minimal HTML UI for selecting audio input and adjusting FFmpeg settings
-- Supports persistent configuration via `config.json`
+- Optimized for compatibility with old-ass hardware like the 4th Gen iPod Touch.
 - Cross-platform (Windows/macOS/Linux)
 
-## 🛠 Requirements
+## Requirements
 
-- Node.js (v14 or later recommended)
-- FFmpeg installed and accessible in system PATH
-- For Windows: `Stereo Mix` or microphone input available via DirectShow (`dshow`)
-- For Linux/macOS: Use `avfoundation` (macOS) or `alsa` (Linux)
+- Node.js
+- FFmpeg installed AND in system PATH
+- For Windows: Make sure you enable and set the input as the Default input.
 
-## 🚀 Getting Started
-### 1. Clone the Repo
 
+### Instructions
+
+1. Clone the Repo
 ```bash
 git clone https://github.com/yourusername/audio-stream-server.git
 cd audio-stream-server
