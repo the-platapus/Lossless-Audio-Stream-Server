@@ -2,58 +2,40 @@
 <html>
 <head>
   <title>Settings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding: 1em; background: #fff; color: #000; }
+    input, select, textarea, button { width: 100%; margin: 0.5em 0; font-size: 1em; }
+  </style>
 </head>
 <body>
-  <h2>Select Audio Input</h2>
+  <h2>🎙️ Select Audio Input</h2>
   <form method="POST" action="/set-device">
-    <select name="device" id="deviceSelect"></select>
-    <button type="submit">Set</button>
+    <select name="device" id="deviceDropdown"></select>
+    <button type="submit">Set Device</button>
   </form>
 
-  <h2>FFmpeg Stream Settings</h2>
-  <form method="POST" action="/set-ffmpeg">
-    <label>Bitrate:
-      <select name="bitrate">
-        <option value="128k">128k</option>
-        <option value="192k">192k</option>
-        <option value="256k" selected>256k</option>
-        <option value="320k">320k</option>
-      </select>
-    </label><br><br>
-
-    <label>Cutoff Frequency:
-      <select name="cutoff">
-        <option value="16000">16000</option>
-        <option value="18000">18000</option>
-        <option value="19000" selected>19000</option>
-        <option value="20000">20000</option>
-      </select>
-    </label><br><br>
-
-    <label>Output Format:
-      <select name="format">
-        <option value="adts" selected>adts</option>
-        <option value="flv">flv</option>
-        <option value="mp4">mp4</option>
-      </select>
-    </label><br><br>
-
-    <button type="submit">Save Settings</button>
+  <h2>⚙️ FFmpeg Args</h2>
+  <form method="POST" action="/set-ffmpeg-raw">
+    <textarea name="rawArgs" rows="6" id="ffmpegArgsBox" placeholder="-c:a aac -b:a 320k -fflags +bitexact -f adts pipe:1"></textarea>
+    <button type="submit">Update FFmpeg Args</button>
   </form>
 
   <script>
-    fetch('/devices')
-      .then(res => res.json())
-      .then(data => {
-        const sel = document.getElementById('deviceSelect');
-        data.devices.forEach(device => {
-          const opt = document.createElement('option');
-          opt.value = device;
-          opt.textContent = device;
-          if (device === data.selected) opt.selected = true;
-          sel.appendChild(opt);
-        });
+    fetch("/devices").then(r => r.json()).then(data => {
+      const select = document.getElementById("deviceDropdown");
+      data.devices.forEach(dev => {
+        const option = document.createElement("option");
+        option.value = dev;
+        option.textContent = dev;
+        if (dev === data.selected) option.selected = true;
+        select.appendChild(option);
       });
+    });
+
+    fetch("/ffmpeg-args").then(r => r.text()).then(args => {
+      document.getElementById("ffmpegArgsBox").value = args;
+    });
   </script>
 </body>
 </html>

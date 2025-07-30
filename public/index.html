@@ -4,16 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <title>Audio Stream</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        pre {
+            background: #f4f4f4;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+    </style>
 </head>
 
 <body>
     <h1>🎧 Lossless FFMPEG Stream</h1>
     <p>Tap play if it doesn't start automatically.</p>
     <audio controls autoplay>
-        <source src="/stream" type="audio/mpeg">
+        <source src="/stream" type="audio/aac">
         Your browser does not support audio.
     </audio>
-    <a href="/settings.html">Audio Settings</a>
+    <p><a href="/settings.html">Audio Settings</a></p>
+
+    <h3>Debug Logs</h3>
+    <pre id="logBox">Loading logs...</pre>
+
+    <script>
+        async function fetchLogs() {
+            try {
+                const res = await fetch('/logs');
+                const text = await res.text();
+                document.getElementById('logBox').textContent = text;
+            } catch (err) {
+                document.getElementById('logBox').textContent = 'Error loading logs';
+            }
+        }
+
+        fetchLogs();
+        setInterval(fetchLogs, 2000);
+    </script>
 </body>
 
 </html>

@@ -8,8 +8,9 @@ const path = require('path');
 const app = express();
 const PORT = 6160;
 const CONFIG_PATH = path.join(__dirname, 'config.json');
+let logs = [];
 
-// Ensure config file exists
+// Ensure config exists
 if (!fs.existsSync(CONFIG_PATH)) {
     fs.writeFileSync(CONFIG_PATH, JSON.stringify({
         selectedDevice: null,
@@ -18,7 +19,7 @@ if (!fs.existsSync(CONFIG_PATH)) {
             "-i", "audio=default",
             "-c:a", "aac",
             "-b:a", "320k",
-            "-cutoff", "19000",
+            "-fflags", "+bitexact",
             "-f", "adts",
             "pipe:1"
         ]
@@ -27,6 +28,15 @@ if (!fs.existsSync(CONFIG_PATH)) {
 
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
+
+// Logging helper
+function log(msg) {
+    const timestamp = new Date().toISOString();
+    const line = `[${timestamp}] ${msg}`;
+    console.log(line);
+    logs.push(line);
+    if (logs.length > 200) logs.shift(); // Limit logs in memory
+}
 
 // Load config
 function loadConfig() {
@@ -37,35 +47,27 @@ function saveConfig(config) {
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
-// Detect available audio devices
+// List audio devices
 function listAudioDevices() {
     return new Promise((resolve, reject) => {
-        const probe = spawn("ffmpeg", [
-            "-list_devices", "true",
-            "-f", "dshow",
-            "-i", "dummy"
-        ]);
-
+        const probe = spawn("ffmpeg", ["-list_devices", "true", "-f", "dshow", "-i", "dummy"]);
         let stderr = "";
-        probe.stderr.on("data", data => stderr += data.toString());
 
+        probe.stderr.on("data", data => stderr += data.toString());
         probe.on("close", () => {
             const lines = stderr.split("\n");
-            const audioLines = lines.filter(line =>
-                line.includes("(audio)") && line.includes("\"")
-            );
-
+            const audioLines = lines.filter(line => line.includes("(audio)") && line.includes("\""));
             const devices = audioLines.map(line => {
                 const match = line.match(/"(.*?)"/);
                 return match?.[1];
             }).filter(Boolean);
-
             resolve(devices);
         });
     });
 }
 
-// List devices API
+// APIs
+
 app.get("/devices", async (req, res) => {
     const config = loadConfig();
     try {
@@ -76,50 +78,36 @@ app.get("/devices", async (req, res) => {
     }
 });
 
-// Set selected device
 app.post("/set-device", (req, res) => {
     const config = loadConfig();
     config.selectedDevice = req.body.device;
-    // Update input in ffmpeg args
     config.ffmpeg = config.ffmpeg.map(arg =>
         arg.startsWith("audio=") ? `audio=${req.body.device}` : arg
     );
     saveConfig(config);
-    console.log("🎙️ Device updated to:", req.body.device);
+    log(`🎙️ Device updated to: ${req.body.device}`);
     res.redirect("/settings.html");
 });
 
-// Set FFmpeg args via dropdowns
 app.post("/set-ffmpeg", (req, res) => {
-    const { bitrate, cutoff, format } = req.body;
     const config = loadConfig();
+    const newArgs = req.body.args.trim().split(/\s+/);
+    const inputArg = `audio=${config.selectedDevice || 'default'}`;
 
-    const inputDriver = os.platform() === "win32" ? "dshow"
-                      : os.platform() === "darwin" ? "avfoundation"
-                      : "pulse";
+    const driver = os.platform() === "win32" ? "dshow"
+                 : os.platform() === "darwin" ? "avfoundation"
+                 : "pulse";
 
-    config.ffmpeg = [
-        "-f", inputDriver,
-        "-i", `audio=${config.selectedDevice || 'default'}`,
-        "-c:a", "aac",
-        "-b:a", bitrate,
-        "-cutoff", cutoff,
-        "-f", format,
-        "pipe:1"
-    ];
-
+    config.ffmpeg = ["-f", driver, "-i", inputArg, ...newArgs];
     saveConfig(config);
-    console.log("⚙️ FFmpeg config updated:", config.ffmpeg);
+    log(`⚙️ FFmpeg args updated: ${config.ffmpeg.join(' ')}`);
     res.redirect("/settings.html");
 });
 
-// Audio streaming route
+// Stream route
 app.get("/stream", (req, res) => {
     const config = loadConfig();
-
-    if (!config.selectedDevice) {
-        return res.status(400).send("No audio input device selected.");
-    }
+    if (!config.selectedDevice) return res.status(400).send("No audio input selected.");
 
     res.setHeader("Content-Type", "audio/aac");
     res.setHeader("Connection", "keep-alive");
@@ -127,26 +115,36 @@ app.get("/stream", (req, res) => {
     const pass = new PassThrough();
     const ffmpeg = spawn("ffmpeg", config.ffmpeg);
 
-    console.log("🔊 FFmpeg streaming started...");
+    log("🔊 FFmpeg streaming started...");
 
     ffmpeg.stdout.pipe(pass).pipe(res);
 
     ffmpeg.stderr.on("data", data => {
         const msg = data.toString();
-        if (msg.toLowerCase().includes("error")) {
-            console.error("FFmpeg:", msg);
-        }
+        if (msg.toLowerCase().includes("error")) log(`❗ FFmpeg: ${msg}`);
     });
 
     req.on("close", () => {
-        console.log("❌ Client disconnected, killing FFmpeg.");
+        log("❌ Client disconnected, killing FFmpeg.");
         ffmpeg.kill('SIGINT');
     });
 });
 
-// Start server
+// Log endpoint
+app.get("/logs", (req, res) => {
+    res.setHeader("Content-Type", "text/plain");
+    res.send(logs.join("\n"));
+});
+
+// Prefill args for settings.html
+app.get("/ffmpeg-args", (req, res) => {
+    const config = loadConfig();
+    const userArgs = config.ffmpeg.slice(4); // Skip: -f dshow -i audio=...
+    res.send(userArgs.join(" "));
+});
+
+// Server
 app.listen(PORT, () => {
-    const ip = Object.values(os.networkInterfaces())
-        .flat().find(x => x.family === 'IPv4' && !x.internal)?.address;
-    console.log(`✅ Server running at: http://${ip}:${PORT}`);
+    const ip = Object.values(os.networkInterfaces()).flat().find(x => x.family === 'IPv4' && !x.internal)?.address;
+    log(`✅ Server running at: http://${ip}:${PORT}`);
 });
