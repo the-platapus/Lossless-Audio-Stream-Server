@@ -30,4 +30,4 @@ npm start
 ```
 
 <br><br>
-Developed with ❤️ for old and iconic Media Players of the golden age. Made with FFmpeg and Node.js.
+Developed with ❤️ for old and iconic Media Players of the golden age.
