@@ -28,6 +28,8 @@ npm install
 ```bash
 npm start
 ```
-
+# Known Bugs
+- Slight audio artifacts on pre-2011 Apple Devices due to pushing those damn things to their limits.
+- FFmpeg audio config flags other than Input Source not working.
 <br><br>
 Developed with ❤️ for old and iconic Media Players of the golden age.
