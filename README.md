@@ -38,8 +38,6 @@ Server will start on port 6160 by default and print your local IP:
 4. Access from Client
 Open Safari (or any browser) on your iPod or other device:
 
-cpp
- 
  ```bash
 http://<your-pc-ip>:6160
 ```
