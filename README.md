@@ -32,38 +32,6 @@ yarn install
 ```bash
 yarn start
 ```
-Server will start on port 6160 by default and print your local IP:
 
-✅ Server running at: http://192.168.x.x:6160
-4. Access from Client
-Open Safari (or any browser) on your iPod or other device:
-
- ```bash
-http://<your-pc-ip>:6160
-```
-Click Set Input and then open:
- ```bash
-http://<your-pc-ip>:6160/stream
-```
-⚙️ Configuration
-## Audio Input Device
-To change the input device:
-1. Visit http://<your-pc-ip>:6160
-2. Select an audio input from the dropdown
-3. Press Set
-
-## FFmpeg Settings
-Visit /settings.html and adjust encoding settings:
-
-Codec
-
-Bitrate
-
-Cutoff frequency
-
-Output format (adts recommended for iOS)
-
-These settings are saved to config.json.
-
-🙏 Credits:
+<br><br>
 Developed with ❤️ for old and iconic Media Players of the golden age. Made with FFmpeg and Node.js.
