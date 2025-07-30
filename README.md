@@ -17,8 +17,8 @@
 
 1. Clone the Repo
 ```bash
-git clone https://github.com/the-platapus/audio-stream-server.git
-cd audio-stream-server
+git clone https://github.com/the-platapus/Lossless-Audio-Stream-Server.git
+cd Lossless-Audio-Stream-Server
 ```
 2. Install Dependencies
 ```bash
