@@ -1,18 +1,18 @@
 {
-  "selectedDevice": "Line In (High Definition Audio Device)",
+  "selectedDevice": ":0",
   "ffmpeg": [
     "-f",
-    "dshow",
+    "avfoundation",
     "-i",
-    "audio=Line In (High Definition Audio Device)",
+    ":0",
     "-c:a",
-    "aac",
-    "-b:a",
-    "320k",
-    "-fflags",
-    "+bitexact",
+    "pcm_s16le",
+    "-ar",
+    "44100",
+    "-ac",
+    "2",
     "-f",
-    "adts",
+    "wav",
     "pipe:1"
   ]
 }

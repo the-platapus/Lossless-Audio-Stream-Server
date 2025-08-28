@@ -1,51 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Audio Stream</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 20px;
-        }
-        pre {
-            background: #f4f4f4;
-            border: 1px solid #ccc;
-            padding: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 12px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lossless Music Clock</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: monospace, sans-serif;
+      color: white;
+    }
+
+    .clock {
+      width: 80vw;
+      height: 80vh;
+      background-color: #333;
+      color: #fff;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      box-shadow: 0px 10px 30px rgba(255, 255, 255, 0.15);
+      position: relative;
+    }
+
+    .inner-container {
+      width: 95%;
+      height: 90%;
+      background-color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 20px;
+      position: absolute;
+      box-shadow: 0px 10px 20px rgba(255, 255, 255, 0.25);
+      flex-direction: column;
+      padding: 10px;
+    }
+
+    .display {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.3), 0 0 30px rgba(255, 255, 255, 0.5);
+      flex-grow: 1;
+    }
+
+    .time {
+      font-size: 10vw;
+      line-height: 1;
+    }
+
+    .date {
+      font-size: 4vw;
+      margin-top: 10px;
+    }
+
+    .weather-icon {
+      width: 5vw;
+      height: 5vw;
+      margin-bottom: 10px;
+    }
+
+    .weather-description {
+      font-size: 3vw;
+      margin-top: 20px;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.3), 0 0 30px rgba(255, 255, 255, 0.5);
+      color: white;
+      max-width: 100%;
+      word-wrap: break-word;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .controls {
+      width: 95%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 10px 0 0;
+      flex-wrap: wrap;
+    }
+
+    .controls button, .controls a {
+      background-color: #555;
+      border: none;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .controls button:hover, .controls a:hover {
+      background-color: #777;
+    }
+
+    audio {
+      width: 95%;
+      max-width: 700px;
+      margin-top: 6px;
+      outline: none;
+      filter: drop-shadow(0 0 12px rgba(255,255,255,0.15));
+    }
+
+    .links {
+      position: absolute;
+      bottom: 12px;
+      left: 16px;
+      font-size: 14px;
+    }
+
+    .links a {
+      color: #ddd;
+      text-decoration: none;
+    }
+
+    .links a:hover {
+      text-decoration: underline;
+    }
+
+    .fullscreen-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 40px;
+      height: 40px;
+      background-color: #ddd;
+      border: none;
+      border-radius: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .fullscreen-button.fullscreen {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #bbb;
+    }
+
+    .fullscreen-button i {
+      font-size: 1.5em;
+      color: #333;
+    }
+
+    .logbox {
+      width: 95%;
+      max-height: 22vh;
+      overflow-y: auto;
+      background: #111;
+      border: 1px solid #444;
+      padding: 8px;
+      font-size: 11px;
+      color: #cfcfcf;
+      border-radius: 8px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
-
 <body>
-    <h1>🎧 Lossless FFMPEG Stream</h1>
-    <p>Tap play if it doesn't start automatically.</p>
-    <audio controls autoplay>
-        <source src="/stream" type="audio/aac">
-        Your browser does not support audio.
-    </audio>
-    <p><a href="/settings.html">Audio Settings</a></p>
+  <div class="clock">
+    <div class="inner-container">
+      <div class="display">
+        <div class="time"></div>
+        <div class="date"></div>
+        <img id="weather-icon" class="weather-icon" src="" alt="Weather Icon" />
+        <div class="weather-description" id="weather-description">Fetching weather...</div>
 
-    <h3>Debug Logs</h3>
-    <pre id="logBox">Loading logs...</pre>
+        <div class="controls">
+          <button id="play-btn">▶ Play Stream</button>
+          <span style="opacity:.8;font-size:12px;">Tap play if it doesn't start automatically</span>
+        </div>
+        <audio id="player" controls preload="none"></audio>
 
-    <script>
-        async function fetchLogs() {
-            try {
-                const res = await fetch('/logs');
-                const text = await res.text();
-                document.getElementById('logBox').textContent = text;
-            } catch (err) {
-                document.getElementById('logBox').textContent = 'Error loading logs';
-            }
-        }
+        <div class="controls">
+          <button id="toggle-logs-btn" aria-expanded="false">Show Logs</button>
+        </div>
+        <div class="logbox" id="logBox" style="display:none;">Logs hidden</div>
+      </div>
 
-        fetchLogs();
-        setInterval(fetchLogs, 2000);
-    </script>
+      <button class="fullscreen-button" id="fullscreen-btn" title="Toggle Fullscreen">
+        <i class="fas fa-expand"></i>
+      </button>
+
+      <div class="links">
+        <form method="POST" action="/set-device" id="deviceForm" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+          <label for="deviceDropdown" style="margin-right:6px;">Input:</label>
+          <select name="device" id="deviceDropdown" style="max-width:320px; color:#000;"></select>
+          <button type="submit" style="background:#555; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">Set</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Weather (same theme/behavior as Webclock)
+    const apiKey = 'b456ae85b767246d09b74d49201f72ff'; // OpenWeatherMap API key
+    const city = 'London';
+    const weatherUrl = 'https://api.openweathermap.org/data/2.5/weather?q=' + encodeURIComponent(city) + '&appid=' + apiKey + '&units=metric';
+
+    function getWeatherDescription() {
+      fetch(weatherUrl)
+        .then(response => {
+          if (!response.ok) throw new Error('API request failed');
+          return response.json();
+        })
+        .then(data => {
+          const weatherDescription = data.weather && data.weather[0] ? data.weather[0].description : 'N/A';
+          const weatherIconCode = data.weather && data.weather[0] ? data.weather[0].icon : '';
+          const iconUrl = weatherIconCode ? ('https://openweathermap.org/img/wn/' + weatherIconCode + '@2x.png') : '';
+
+          document.getElementById('weather-description').textContent =
+            weatherDescription ? (weatherDescription.charAt(0).toUpperCase() + weatherDescription.slice(1)) : 'N/A';
+          document.getElementById('weather-icon').src = iconUrl;
+        })
+        .catch(() => {
+          document.getElementById('weather-description').textContent = 'Failed to fetch weather data';
+          document.getElementById('weather-icon').src = '';
+        });
+    }
+    getWeatherDescription();
+    setInterval(getWeatherDescription, 1800000); // 30 minutes
+
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const dateString = now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      document.querySelector('.time').textContent = timeString;
+      document.querySelector('.date').textContent = dateString;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Fullscreen
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        (document.documentElement.requestFullscreen && document.documentElement.requestFullscreen()) ||
+        (document.documentElement.webkitRequestFullscreen && document.documentElement.webkitRequestFullscreen());
+        fullscreenBtn.classList.add('fullscreen');
+      } else {
+        (document.exitFullscreen && document.exitFullscreen()) ||
+        (document.webkitExitFullscreen && document.webkitExitFullscreen());
+        fullscreenBtn.classList.remove('fullscreen');
+      }
+    });
+
+    // Audio stream player
+    const audio = document.getElementById('player');
+    const playBtn = document.getElementById('play-btn');
+    function ensureSource() {
+      if (!audio.src) audio.src = '/stream';
+    }
+    playBtn.addEventListener('click', () => {
+      ensureSource();
+      audio.play().catch(function(){ /* autoplay may require user gesture */ });
+    });
+
+    // Logs (show/hide on demand)
+    const logBox = document.getElementById('logBox');
+    const toggleLogsBtn = document.getElementById('toggle-logs-btn');
+    let logsTimer = null;
+
+    function fetchLogs() {
+      fetch('/logs')
+        .then(res => res.ok ? res.text() : Promise.reject())
+        .then(text => { logBox.textContent = text; })
+        .catch(() => { logBox.textContent = 'Error loading logs'; });
+    }
+
+    function openLogs() {
+      if (logBox.style.display !== 'block') {
+        logBox.style.display = 'block';
+        toggleLogsBtn.textContent = 'Hide Logs';
+        toggleLogsBtn.setAttribute('aria-expanded', 'true');
+      }
+      fetchLogs();
+      if (!logsTimer) logsTimer = setInterval(fetchLogs, 2000);
+    }
+
+    function closeLogs() {
+      if (logsTimer) {
+        clearInterval(logsTimer);
+        logsTimer = null;
+      }
+      logBox.style.display = 'none';
+      toggleLogsBtn.textContent = 'Show Logs';
+      toggleLogsBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    toggleLogsBtn.addEventListener('click', () => {
+      if (logBox.style.display === 'none' || logBox.style.display === '') {
+        openLogs();
+      } else {
+        closeLogs();
+      }
+    });
+
+    // Populate device dropdown on main page
+    (function initDeviceDropdown(){
+      const select = document.getElementById('deviceDropdown');
+      if (!select) return;
+      fetch('/devices').then(r => r.json()).then(data => {
+        select.innerHTML = '';
+        (data.devices || []).forEach(dev => {
+          const opt = document.createElement('option');
+          opt.value = dev.value || dev;
+          opt.textContent = dev.label || dev;
+          if ((dev.value || dev) === data.selected) opt.selected = true;
+          select.appendChild(opt);
+        });
+      }).catch(()=>{ /* ignore */ });
+    })();
+  </script>
+
+  <!-- FontAwesome for fullscreen icon (as in Webclock) -->
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
 </body>
-
 </html>
