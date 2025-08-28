@@ -1,41 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8" />
   <title>Settings</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { font-family: sans-serif; padding: 1em; background: #fff; color: #000; }
-    input, select, textarea, button { width: 100%; margin: 0.5em 0; font-size: 1em; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background: #111; color: #eee; }
+    .wrap { max-width: 800px; margin: 40px auto; padding: 20px; background:#1b1b1b; border:1px solid #333; border-radius: 10px; }
+    h1 { margin: 0 0 10px; }
+    p { line-height: 1.6; color: #ccc; }
+    a.btn { display:inline-block; margin-top: 16px; background:#2d6cdf; color:#fff; text-decoration:none; padding:10px 14px; border-radius:8px; }
+    pre { background:#0d0d0d; border:1px solid #333; padding:10px; border-radius:8px; overflow:auto; color:#ddd; }
+    code { color:#ddd; }
   </style>
 </head>
 <body>
-  <h2>🎙️ Select Audio Input</h2>
-  <form method="POST" action="/set-device">
-    <select name="device" id="deviceDropdown"></select>
-    <button type="submit">Set Device</button>
-  </form>
-
-  <h2>⚙️ FFmpeg Args</h2>
-  <form method="POST" action="/set-ffmpeg-raw">
-    <textarea name="rawArgs" rows="6" id="ffmpegArgsBox" placeholder="-c:a aac -b:a 320k -fflags +bitexact -f adts pipe:1"></textarea>
-    <button type="submit">Update FFmpeg Args</button>
-  </form>
-
-  <script>
-    fetch("/devices").then(r => r.json()).then(data => {
-      const select = document.getElementById("deviceDropdown");
-      data.devices.forEach(dev => {
-        const option = document.createElement("option");
-        option.value = dev;
-        option.textContent = dev;
-        if (dev === data.selected) option.selected = true;
-        select.appendChild(option);
-      });
-    });
-
-    fetch("/ffmpeg-args").then(r => r.text()).then(args => {
-      document.getElementById("ffmpegArgsBox").value = args;
-    });
-  </script>
+  <div class="wrap">
+    <h1>Settings</h1>
+    <p>
+      FFmpeg arguments are now hard-coded on the server for maximum compatibility with older devices.
+      The stream is configured as:
+    </p>
+    <pre><code>-c:a pcm_s16le -ar 44100 -ac 2 -f wav pipe:1</code></pre>
+    <p>
+      Select your audio input device directly on the main page (bottom-left dropdown).
+    </p>
+    <a class="btn" href="/">Back to Clock</a>
+  </div>
 </body>
 </html>
