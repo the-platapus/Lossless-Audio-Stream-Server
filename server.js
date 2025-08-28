@@ -109,23 +109,45 @@ function listAudioDevices() {
                 }
             } else {
                 // pulse
-                // Look for "Input devices:" and then lines like "0: alsa_input.pci-....analog-stereo"
+                // Include Input devices and also add monitor sources for Output devices (system audio)
                 let inInputSection = false;
+                let inOutputSection = false;
+
                 for (const line of lines) {
-                    if (line.toLowerCase().includes("input devices")) {
+                    const lower = line.toLowerCase();
+
+                    // Section switches
+                    if (lower.includes("input devices")) {
                         inInputSection = true;
+                        inOutputSection = false;
                         continue;
                     }
+                    if (lower.includes("output devices")) {
+                        inInputSection = false;
+                        inOutputSection = true;
+                        continue;
+                    }
+
                     if (inInputSection) {
+                        // Example: "  0: alsa_input.pci-0000_00_1f.3.analog-stereo"
                         const m = line.match(/^\s*(\d+):\s(.+)$/);
                         if (m) {
                             const dev = m[2].trim();
                             results.push({ value: dev, label: dev });
-                        } else if (line.trim() === "" || line.toLowerCase().includes("output devices")) {
-                            inInputSection = false;
+                        }
+                    }
+
+                    if (inOutputSection) {
+                        // Example: "  0: alsa_output.pci-0000_00_1f.3.analog-stereo"
+                        const m = line.match(/^\s*(\d+):\s(.+)$/);
+                        if (m) {
+                            const sink = m[2].trim();
+                            const monitor = `${sink}.monitor`;
+                            results.push({ value: monitor, label: `${sink} (monitor)` });
                         }
                     }
                 }
+
                 if (results.length === 0) {
                     results = [{ value: "default", label: "Default" }];
                 }
@@ -187,6 +209,37 @@ function guessContentType(args) {
     }
 }
 
+/**
+ * Try to find a system loopback/virtual cable device for capturing system output.
+ * Returns a value string usable as the ffmpeg -i input for the current driver, or null if not found.
+ */
+async function findSystemLoopback() {
+    const devices = await listAudioDevices();
+    const preferredKeywords = [
+        "blackhole", "soundflower", "loopback", "vb-cable", "stereo mix",
+        "what u hear", "voicemeeter", "monitor"
+    ];
+    for (const dev of devices) {
+        const label = (dev.label || "").toLowerCase();
+        if (preferredKeywords.some(k => label.includes(k))) {
+            return dev.value || dev;
+        }
+    }
+
+    // Linux fallback: try pactl default sink monitor if available
+    if (detectDriver() === "pulse") {
+        try {
+            const { spawnSync } = require("child_process");
+            const out = spawnSync("pactl", ["get-default-sink"], { encoding: "utf8" });
+            if (out && out.status === 0) {
+                const sink = out.stdout.trim();
+                if (sink) return `${sink}.monitor`;
+            }
+        } catch (_) { /* ignore */ }
+    }
+    return null;
+}
+
 // APIs
 
 app.get("/devices", async (req, res) => {
@@ -213,6 +266,26 @@ app.post("/set-device", (req, res) => {
 
 app.post("/set-ffmpeg", (req, res) => {
     res.status(410).send("FFmpeg arguments are now hard-coded on the server.");
+});
+
+app.post("/select-system-audio", async (req, res) => {
+    const driver = detectDriver();
+    try {
+        const loop = await findSystemLoopback();
+        if (!loop) {
+            log("⚠️ No system loopback device found.");
+            return res.status(404).send("No system loopback device found on this OS. Install a virtual/loopback device (e.g., BlackHole on macOS or VB-CABLE on Windows) and retry.");
+        }
+        const config = loadConfig();
+        config.selectedDevice = loop;
+        config.ffmpeg = ["-f", driver, "-i", loop, ...HARD_CODED_ARGS];
+        saveConfig(config);
+        log(`🎛️ Selected system loopback device: ${loop}`);
+        res.redirect("/");
+    } catch (e) {
+        log(`❗ System audio selection failed: ${e.message}`);
+        res.status(500).send("System audio selection failed.");
+    }
 });
 
 // Stream route
