@@ -1,18 +1,18 @@
 {
-  "selectedDevice": ":0",
+  "selectedDevice": "Stereo Mix (Realtek(R) Audio)",
   "ffmpeg": [
     "-f",
-    "avfoundation",
+    "dshow",
     "-i",
-    ":0",
+    "audio=Stereo Mix (Realtek(R) Audio)",
     "-c:a",
-    "pcm_s16le",
-    "-ar",
-    "44100",
-    "-ac",
-    "2",
+    "aac",
+    "-b:a",
+    "320k",
+    "-fflags",
+    "+bitexact",
     "-f",
-    "wav",
+    "adts",
     "pipe:1"
   ]
 }
