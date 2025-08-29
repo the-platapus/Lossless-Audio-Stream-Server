@@ -1,10 +1,10 @@
 {
-  "selectedDevice": "Line In (High Definition Audio Device)",
+  "selectedDevice": "Stereo Mix (Realtek(R) Audio)",
   "ffmpeg": [
     "-f",
     "dshow",
     "-i",
-    "audio=Line In (High Definition Audio Device)",
+    "audio=Stereo Mix (Realtek(R) Audio)",
     "-c:a",
     "aac",
     "-b:a",
