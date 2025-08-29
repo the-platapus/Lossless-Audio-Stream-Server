@@ -186,6 +186,7 @@
 
         <div class="controls">
           <button id="play-btn">▶ Play Stream</button>
+          <button id="stream-toggle-btn" style="background-color: #777;">Switch to Symbian Stream</button>
           <span style="opacity:.8;font-size:12px;">Tap play if it doesn't start automatically</span>
         </div>
         <audio id="player" controls preload="none"></audio>
@@ -267,16 +268,49 @@
       }
     });
 
-    // Audio stream player
+    // Audio stream player and stream switching
     const audio = document.getElementById('player');
     const playBtn = document.getElementById('play-btn');
+    const streamToggleBtn = document.getElementById('stream-toggle-btn');
+    let currentStream = '/stream'; // Default stream
+    
     function ensureSource() {
-      if (!audio.src) audio.src = '/stream';
+      if (!audio.src || !audio.src.includes(currentStream)) {
+        audio.src = currentStream;
+      }
     }
+    
+    function toggleStream() {
+      if (currentStream === '/stream') {
+        currentStream = '/stream-symbian';
+        streamToggleBtn.textContent = 'Switch to Regular Stream';
+        streamToggleBtn.style.backgroundColor = '#4CAF50'; // Green for active state
+      } else {
+        currentStream = '/stream';
+        streamToggleBtn.textContent = 'Switch to Symbian Stream';
+        streamToggleBtn.style.backgroundColor = '#777'; // Default color
+      }
+      
+      // Update the audio source if it's already playing
+      if (audio.src && !audio.paused) {
+        const wasPlaying = !audio.paused;
+        const currentTime = audio.currentTime;
+        audio.src = currentStream;
+        if (wasPlaying) {
+          audio.play().catch(function(){ /* autoplay may require user gesture */ });
+        }
+        audio.currentTime = currentTime;
+      } else {
+        audio.src = currentStream;
+      }
+    }
+    
     playBtn.addEventListener('click', () => {
       ensureSource();
       audio.play().catch(function(){ /* autoplay may require user gesture */ });
     });
+    
+    streamToggleBtn.addEventListener('click', toggleStream);
 
     // Logs (show/hide on demand)
     const logBox = document.getElementById('logBox');
