@@ -131,38 +131,38 @@ app.get("/stream", (req, res) => {
 });
 
 // Symbian stream route (AAC-LC)
-app.get("/stream-symbian", (req, res) => {
-    const config = loadConfig();
-    if (!config.selectedDevice) return res.status(400).send("No audio input selected.");
+// app.get("/stream-symbian", (req, res) => {
+//     const config = loadConfig();
+//     if (!config.selectedDevice) return res.status(400).send("No audio input selected.");
 
-    res.setHeader("Content-Type", "audio/aac");
-    res.setHeader("Connection", "keep-alive");
+//     res.setHeader("Content-Type", "audio/aac");
+//     res.setHeader("Connection", "keep-alive");
 
-    const pass = new PassThrough();
-    const ffmpeg = spawn("ffmpeg", [
-        "-f", os.platform() === "win32" ? "dshow" :
-              os.platform() === "darwin" ? "avfoundation" : "pulse",
-        "-i", `audio=${config.selectedDevice || 'default'}`,
-        "-c:a", "aac",         // AAC-LC (baseline profile)
-        "-profile:a", "aac_low",
-        "-b:a", "320k",        // more Symbian-friendly bitrate
-        "-f", "adts", "pipe:1"
-    ]);
+//     const pass = new PassThrough();
+//     const ffmpeg = spawn("ffmpeg", [
+//         "-f", os.platform() === "win32" ? "dshow" :
+//               os.platform() === "darwin" ? "avfoundation" : "pulse",
+//         "-i", `audio=${config.selectedDevice || 'default'}`,
+//         "-c:a", "aac",         // AAC-LC (baseline profile)
+//         "-profile:a", "aac_low",
+//         "-b:a", "320k",        // more Symbian-friendly bitrate
+//         "-f", "adts", "pipe:1"
+//     ]);
 
-    log("📱 Symbian stream started...");
+//     log("📱 Symbian stream started...");
 
-    ffmpeg.stdout.pipe(pass).pipe(res);
+//     ffmpeg.stdout.pipe(pass).pipe(res);
 
-    ffmpeg.stderr.on("data", data => {
-        const msg = data.toString();
-        if (msg.toLowerCase().includes("error")) log(`❗ FFmpeg(Symbian): ${msg}`);
-    });
+//     ffmpeg.stderr.on("data", data => {
+//         const msg = data.toString();
+//         if (msg.toLowerCase().includes("error")) log(`❗ FFmpeg(Symbian): ${msg}`);
+//     });
 
-    req.on("close", () => {
-        log("❌ Symbian client disconnected, killing FFmpeg.");
-        ffmpeg.kill('SIGINT');
-    });
-});
+//     req.on("close", () => {
+//         log("❌ Symbian client disconnected, killing FFmpeg.");
+//         ffmpeg.kill('SIGINT');
+//     });
+// });
 
 
 // Log endpoint
