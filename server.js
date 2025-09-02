@@ -4,6 +4,7 @@ const { PassThrough } = require('stream');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
 
 const app = express();
 const PORT = 6160;
@@ -178,8 +179,47 @@ app.get("/ffmpeg-args", (req, res) => {
     res.send(userArgs.join(" "));
 });
 
+app.post("/reset-config", (req, res) => {
+    try {
+        if (fs.existsSync(CONFIG_PATH)) {
+            fs.unlinkSync(CONFIG_PATH);
+            log("🗑️ config.json deleted.");
+        }
+        // Recreate with default values
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify({
+            selectedDevice: null,
+            ffmpeg: [
+                "-f", "dshow",
+                "-i", "audio=default",
+                "-c:a", "aac",
+                "-b:a", "320k",
+                "-fflags", "+bitexact",
+                "-f", "adts",
+                "pipe:1"
+            ]
+        }, null, 2));
+        log("📝 config.json recreated with default values.");
+        res.sendStatus(200);
+    } catch (error) {
+        log(`❗ Failed to reset configuration: ${error.message}`);
+        res.status(500).send("Failed to reset configuration.");
+    }
+});
+
 // Server
 app.listen(PORT, () => {
     const ip = Object.values(os.networkInterfaces()).flat().find(x => x.family === 'IPv4' && !x.internal)?.address;
-    log(`✅ Server running at: http://${ip}:${PORT}`);
+    log(`✅ Server running at: http://${ip}:${PORT}, press Q to stop server.`);
+});
+
+// Graceful shutdown
+readline.emitKeypressEvents(process.stdin);
+if (process.stdin.isTTY) {
+    process.stdin.setRawMode(true);
+}
+process.stdin.on('keypress', (str, key) => {
+    if (key.name === 'q') {
+        log("🛑 Quitting server...");
+        process.exit();
+    }
 });

@@ -6,49 +6,104 @@
     <title>Audio Stream</title>
     <style>
         body {
-            font-family: sans-serif;
-            margin: 20px;
+            margin: 0;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background: #efefef;
+            color: #333;
         }
-        pre {
-            background: #f4f4f4;
-            border: 1px solid #ccc;
+
+        /* iOS 6 style header bar */
+        .header {
+            background: -webkit-gradient(linear, left top, left bottom,
+                from(#f9f9f9), to(#c7ccd1));
+            border-bottom: 1px solid #888;
             padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+            text-shadow: 0 1px 0 #fff;
+        }
+
+        /* Page content */
+        .container {
+            padding: 15px;
+        }
+
+        /* iOS 6 glossy button */
+        .button {
+            display: inline-block;
+            padding: 6px 14px;
+            margin: 6px 0;
+            background: -webkit-gradient(linear, left top, left bottom,
+                from(#ffffff), to(#d0d0d0));
+            border: 1px solid #999;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            text-shadow: 0 1px 0 #fff;
+            -webkit-box-shadow: inset 0 1px 0 #fff,
+                                0 1px 2px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+        }
+        .button:active {
+            background: -webkit-gradient(linear, left top, left bottom,
+                from(#d0d0d0), to(#ffffff));
+        }
+
+        /* Debug log box styled like UITextView */
+        pre {
+            background: #fff;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 12px;
             max-height: 200px;
             overflow-y: auto;
-            font-size: 12px;
+            -webkit-box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 
 <body>
-    <h1>🎧 Lossless FFMPEG Stream</h1>
-    <p>Tap play if it doesn't start automatically.</p>
-    <audio controls autoplay>
-        <source src="/stream" type="audio/aac">
-        Your browser does not support audio.
-    </audio>
+    <div class="header">Audio Stream</div>
+    <div class="container">
+        <p>Tap play if it does not start automatically.</p>
 
-    <!-- <p><a href="/stream-symbian">Fallback Symbian Stream</a></p> -->
-    
-    <p><a href="/settings.html">Audio Settings</a></p>
+        <audio controls autoplay style="width:100%; margin:8px 0;">
+            <source src="/stream" type="audio/aac">
+            Your browser does not support audio playback.
+        </audio>
 
-    <h3>Debug Logs</h3>
-    <pre id="logBox">Loading logs...</pre>
+        <!-- Buttons -->
+        <p>
+            <a href="/settings.html" class="button">Audio Settings</a>
+            <!-- <a href="/stream-symbian" class="button">Symbian Fallback</a> -->
+        </p>
 
-    <script>
-        async function fetchLogs() {
-            try {
-                const res = await fetch('/logs');
-                const text = await res.text();
-                document.getElementById('logBox').textContent = text;
-            } catch (err) {
-                document.getElementById('logBox').textContent = 'Error loading logs';
-            }
+        <h3>Debug Logs</h3>
+        <pre id="logBox">Loading logs...</pre>
+    </div>
+
+    <script type="text/javascript">
+        function fetchLogs() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/logs", true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        document.getElementById("logBox").textContent = xhr.responseText;
+                    } else {
+                        document.getElementById("logBox").textContent = "Error loading logs";
+                    }
+                }
+            };
+            xhr.send();
         }
 
         fetchLogs();
         setInterval(fetchLogs, 2000);
     </script>
 </body>
-
 </html>

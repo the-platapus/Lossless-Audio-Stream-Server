@@ -1,41 +1,167 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <title>Settings</title>
+  <meta charset="UTF-8">
+  <title>Audio Settings</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; padding: 1em; background: #fff; color: #000; }
-    input, select, textarea, button { width: 100%; margin: 0.5em 0; font-size: 1em; }
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: #efefef;
+      color: #333;
+    }
+
+    /* iOS 6 style header */
+    .header {
+      background: -webkit-gradient(linear, left top, left bottom,
+        from(#f9f9f9), to(#c7ccd1));
+      border-bottom: 1px solid #888;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      color: #333;
+      text-shadow: 0 1px 0 #fff;
+    }
+
+    .container {
+      padding: 15px;
+    }
+
+    h3 {
+      margin-top: 20px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #444;
+      text-shadow: 0 1px 0 #fff;
+    }
+
+    /* iOS 6 glossy button */
+    .button {
+      display: inline-block;
+      padding: 6px 14px;
+      margin: 8px 0;
+      background: -webkit-gradient(linear, left top, left bottom,
+        from(#ffffff), to(#d0d0d0));
+      border: 1px solid #999;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 14px;
+      color: #333;
+      text-shadow: 0 1px 0 #fff;
+      -webkit-box-shadow: inset 0 1px 0 #fff,
+                          0 1px 2px rgba(0, 0, 0, 0.2);
+      text-decoration: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .button:active {
+      background: -webkit-gradient(linear, left top, left bottom,
+        from(#d0d0d0), to(#ffffff));
+    }
+
+    /* Inputs styled like iOS 6 */
+    select, textarea {
+      width: 100%;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fff;
+      -webkit-box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: bold;
+      font-size: 14px;
+      color: #444;
+      text-shadow: 0 1px 0 #fff;
+    }
   </style>
 </head>
+
 <body>
-  <h2>🎙️ Select Audio Input</h2>
-  <form method="POST" action="/set-device">
-    <select name="device" id="deviceDropdown"></select>
-    <button type="submit">Set Device</button>
-  </form>
+  <div class="header">Audio Settings</div>
+  <div class="container">
 
-  <h2>⚙️ FFmpeg Args (Don't change unless you know what you're doing or you're dequr01 :P )</h2>
-  <form method="POST" action="/set-ffmpeg-raw">
-    <textarea name="rawArgs" rows="6" id="ffmpegArgsBox" placeholder="-c:a aac -b:a 320k -fflags +bitexact -f adts pipe:1"></textarea>
-    <button type="submit">Update FFmpeg Args</button>
-  </form>
+    <form method="POST" action="/set-device">
+      <label for="deviceDropdown">Audio Input Device</label>
+      <select name="device" id="deviceDropdown"></select>
+      <button type="submit" class="button">Set Device</button>
+    </form>
 
-  <script>
-    fetch("/devices").then(r => r.json()).then(data => {
-      const select = document.getElementById("deviceDropdown");
-      data.devices.forEach(dev => {
-        const option = document.createElement("option");
-        option.value = dev;
-        option.textContent = dev;
-        if (dev === data.selected) option.selected = true;
-        select.appendChild(option);
-      });
-    });
+    <form method="POST" action="/set-ffmpeg-raw">
+      <label for="ffmpegArgsBox">FFmpeg Arguments</label>
+      <textarea name="rawArgs" id="ffmpegArgsBox" rows="6"></textarea>
+      <button type="submit" class="button">Update Config</button>
+    </form>
 
-    fetch("/ffmpeg-args").then(r => r.text()).then(args => {
-      document.getElementById("ffmpegArgsBox").value = args;
-    });
+    <form id="resetConfigForm" method="POST" action="/reset-config">
+      <button type="submit" class="button">Reset Config</button>
+    </form>
+
+  </div>
+
+  <script type="text/javascript">
+    // Old-school XHR for devices (instead of fetch)
+    function loadDevices() {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", "/devices", true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          try {
+            var data = JSON.parse(xhr.responseText);
+            var select = document.getElementById("deviceDropdown");
+            for (var i = 0; i < data.devices.length; i++) {
+              var dev = data.devices[i];
+              var option = document.createElement("option");
+              option.value = dev;
+              option.text = dev;
+              if (dev === data.selected) option.selected = true;
+              select.appendChild(option);
+            }
+          } catch (e) { }
+        }
+      };
+      xhr.send();
+    }
+
+    // Old-school XHR for FFmpeg args
+    function loadArgs() {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", "/ffmpeg-args", true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          document.getElementById("ffmpegArgsBox").value = xhr.responseText;
+        }
+      };
+      xhr.send();
+    }
+
+    // Handle reset confirmation
+    document.getElementById("resetConfigForm").onsubmit = function (e) {
+      var ok = confirm("Are you sure you want to reset the configuration? This will delete config.json.");
+      if (!ok) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    // Load data on page open
+    loadDevices();
+    loadArgs();
   </script>
 </body>
 </html>
