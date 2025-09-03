@@ -1,0 +1,40 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'   # only runs when you push a tag like v1.0.0
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build executables
+        run: |
+          npx pkg . --targets node18-${{ matrix.os == 'windows-latest' && 'win-x64' || matrix.os == 'macos-latest' && 'macos-x64' || 'linux-x64' }}
+
+      - name: Upload binaries
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.exe
+            *.deb
+            *.dmg
+            *-x64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
