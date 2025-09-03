@@ -8,7 +8,11 @@ const readline = require('readline');
 
 const app = express();
 const PORT = 6160;
-const CONFIG_PATH = path.join(__dirname, 'config.json');
+
+const isPkg = typeof process.pkg !== 'undefined';
+const baseDir = isPkg ? path.dirname(process.execPath) : __dirname;
+const CONFIG_PATH = path.join(baseDir, 'config.json');
+
 let logs = [];
 
 // Ensure config exists

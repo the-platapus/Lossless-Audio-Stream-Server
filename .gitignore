@@ -1,3 +1,7 @@
-node_modules/
+/node_modules
 config.json
+package-lock.json
+the-platapus-audio-streamer-linux
+the-platapus-audio-streamer-macos
+the-platapus-audio-streamer-win.exe
 package-lock.json
