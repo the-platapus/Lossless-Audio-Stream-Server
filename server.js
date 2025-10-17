@@ -100,7 +100,7 @@ app.post("/set-ffmpeg", (req, res) => {
     const inputArg = `audio=${config.selectedDevice || 'default'}`;
 
     const driver = os.platform() === "win32" ? "dshow"
-                 : os.platform() === "darwin" ? "avfoundation"
+                 : os.platform() === "darwin"||"linux" ? "avfoundation"
                  : "pulse";
 
     config.ffmpeg = ["-f", driver, "-i", inputArg, ...newArgs];
