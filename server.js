@@ -71,7 +71,9 @@ function listAudioDevices() {
     });
 }
 
+
 // APIs
+
 
 app.get("/devices", async (req, res) => {
     const config = loadConfig();
@@ -135,55 +137,20 @@ app.get("/stream", (req, res) => {
     });
 });
 
-// Symbian stream route (AAC-LC)
-// app.get("/stream-symbian", (req, res) => {
-//     const config = loadConfig();
-//     if (!config.selectedDevice) return res.status(400).send("No audio input selected.");
-
-//     res.setHeader("Content-Type", "audio/aac");
-//     res.setHeader("Connection", "keep-alive");
-
-//     const pass = new PassThrough();
-//     const ffmpeg = spawn("ffmpeg", [
-//         "-f", os.platform() === "win32" ? "dshow" :
-//               os.platform() === "darwin" ? "avfoundation" : "pulse",
-//         "-i", `audio=${config.selectedDevice || 'default'}`,
-//         "-c:a", "aac",         // AAC-LC (baseline profile)
-//         "-profile:a", "aac_low",
-//         "-b:a", "320k",        // more Symbian-friendly bitrate
-//         "-f", "adts", "pipe:1"
-//     ]);
-
-//     log("📱 Symbian stream started...");
-
-//     ffmpeg.stdout.pipe(pass).pipe(res);
-
-//     ffmpeg.stderr.on("data", data => {
-//         const msg = data.toString();
-//         if (msg.toLowerCase().includes("error")) log(`❗ FFmpeg(Symbian): ${msg}`);
-//     });
-
-//     req.on("close", () => {
-//         log("❌ Symbian client disconnected, killing FFmpeg.");
-//         ffmpeg.kill('SIGINT');
-//     });
-// });
-
-
 // Log endpoint
-app.get("/logs", (req, res) => {
+app.get("/logs", (res) => {
     res.setHeader("Content-Type", "text/plain");
     res.send(logs.join("\n"));
 });
 
 // Prefill args for settings.html
-app.get("/ffmpeg-args", (req, res) => {
+app.get("/ffmpeg-args", (res) => {
     const config = loadConfig();
     const userArgs = config.ffmpeg.slice(4); // Skip: -f dshow -i audio=...
     res.send(userArgs.join(" "));
 });
 
-app.post("/reset-config", (req, res) => {
+app.post("/reset-config", (res) => {
     try {
         if (fs.existsSync(CONFIG_PATH)) {
             fs.unlinkSync(CONFIG_PATH);
@@ -221,7 +188,7 @@ readline.emitKeypressEvents(process.stdin);
 if (process.stdin.isTTY) {
     process.stdin.setRawMode(true);
 }
-process.stdin.on('keypress', (str, key) => {
+process.stdin.on('keypress', (key) => {
     if (key.name === 'q') {
         log("🛑 Quitting server...");
         process.exit();
